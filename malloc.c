@@ -80,17 +80,47 @@ void* malloc(size_t size_needed) {
     return request;
 }
 
+void free(void* ptr) {
+/*ptr est un pointeur qui a été initialisé par malloc donc d'adresse block + 1
+  free va revenir a l'adresse du block et le marquer comme libre isFree = 1*/
+    block_meta* block_ptr = (block_meta*) ptr - 1;
+    block_ptr->isFree = 1;
+
+/*Deuxième partie le coalescing
+  On va faire en sorte de combiner block_meta cote a cote si ils sont libres*/
+    block_meta* next = block_ptr->next_block;
+    while(next && (next->isFree == 1)) {
+        block_ptr->size += next->size + sizeof(block_meta);
+        block_ptr->next_block = next->next_block;
+        next = block_ptr->next_block;
+    }
+}
+
 int main () {
 //Sert a tester nos fonctions
 //On va essayer de stocké un int puis de l'écrire avec son adresse 
-int* test = (int*) malloc(sizeof(int));
-test[0] = 2;
+    int* test = (int*) malloc(sizeof(int));
+    test[0] = 2;
 
-int* test2 = (int*) malloc(sizeof(int));
-test2[0] = 25;
+    int* test2 = (int*) malloc(sizeof(int));
+    test2[0] = 25;
 
-printf("value: %d | Adress: %p\n", test[0], (void*) test);    //avec %p printf veut un void*
-printf("value: %d | Adress: %p\n", test2[0], (void*) test2);    //avec %p printf veut un void*
+    printf("value: %d | Adress: %p\n", test[0], (void*) test);    //avec %p printf veut un void*
+    printf("value: %d | Adress: %p\n", test2[0], (void*) test2);
+
+    free(test2);
+
+    int* test3 = (int*) malloc(sizeof(int));
+    test3[0] = 43;
+    
+    printf("value: %d | Adress: %p\n", test3[0], (void*) test3);
+
+    free(test3);
+    free(test); //Il y a le coalexcing
+
+    block_meta* block_test = (block_meta*) test - 1;
+    int size = block_test->size;
+    printf("size: %d | adress: %p\n", size, (void*)block_test);
 
     return 0;
 }
