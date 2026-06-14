@@ -2,7 +2,7 @@
 
 Implémentation simple d'un allocateur mémoire en C.
 
-## Fonctionalités
+## Fonctionnalités
 
 - Fonctions `malloc`, `free` et `realloc`
 - Réutilisation des blocs libérés
@@ -15,4 +15,4 @@ Implémentation simple d'un allocateur mémoire en C.
 ```
 ## Contexte 
 
-Projet réalisé en autodidacte pour se familiariser avec la gestion de la mémoire a bas niveau.
+Projet réalisé en autodidacte pour se familiariser avec la gestion de la mémoire bas niveau.
