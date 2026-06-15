@@ -17,7 +17,7 @@ typedef struct block_meta{
 block_meta* global_base = NULL;  //== premier bloc, il n'y en a pas 
 
 void my_memcpy(void* new_ptr, void* ptr, size_t block_size) {
-/*Copie les donnée que contient un pointer vers un nouveau pointeur pour realloc
+/*Copie les donnée que contient un pointer vers un nouveau pointeur pour my_realloc
   On cast new_ptr et ptr en unsigned char pour les avoir en octets par octets*/
     unsigned char* ptrcpy = (unsigned char*) ptr;
     unsigned char* new_ptrcpy = (unsigned char*) new_ptr;
@@ -69,7 +69,7 @@ block_meta* request_block(size_t size_needed, block_meta* last_block) {
     return new_block;
 }
 
-void* malloc(size_t size_needed) {
+void* my_malloc(size_t size_needed) {
 /*Regarde si il y a un bloque de taille sufisante avec find_free_block,
   le marque comme occupé et return l'adresse juste après le block_meta
   sinon fais une requete a l'OS avec request_block et return l'adresse après le block_meta
@@ -90,9 +90,9 @@ void* malloc(size_t size_needed) {
     return request;
 }
 
-void free(void* ptr) {
+void my_free(void* ptr) {
 /*ptr est un pointeur qui a été initialisé par malloc donc d'adresse block + 1
-  free va revenir a l'adresse du block et le marquer comme libre isFree = 1*/
+  my_free va revenir a l'adresse du block et le marquer comme libre isFree = 1*/
     block_meta* block_ptr = (block_meta*) ptr - 1;
     block_ptr->isFree = 1;
 
@@ -106,19 +106,19 @@ void free(void* ptr) {
     }
 }
 
-void* realloc(void* ptr, size_t new_size) {
+void* my_realloc(void* ptr, size_t new_size) {
 //Prend un poiteur qui a été initialisé avec malloc et lui alloue plus ou moins d'espace
-    if (ptr == NULL) return malloc(new_size);
-    if (new_size == 0) { free(ptr); return NULL;}
+    if (ptr == NULL) return my_malloc(new_size);
+    if (new_size == 0) { my_free(ptr); return NULL;}
 
     block_meta* block_ptr = (block_meta*) ptr - 1; //Le block de ptr
 
 //Si le block a une taille sufisante il n'y a rien a faire
 //sinon on créer un nouveau poiteur dans une nouvelle zone, on y copie les donnée de ptr et on libere ptr
     if (block_ptr->size < new_size) {
-        void* new_ptr = malloc(new_size);
+        void* new_ptr = my_malloc(new_size);
         my_memcpy(new_ptr, ptr, block_ptr->size);
-        free(ptr);
+        my_free(ptr);
 
         return new_ptr;
     }
@@ -128,19 +128,19 @@ void* realloc(void* ptr, size_t new_size) {
 int main () {
 //Sert a tester nos fonctions
 //On va essayer de stocké un int puis de l'écrire avec son adresse 
-    int* test = (int*) malloc(sizeof(int));
+    int* test = (int*) my_malloc(sizeof(int));
     test[0] = 2;
 
-    int* test2 = (int*) malloc(sizeof(int));
+    int* test2 = (int*) my_malloc(sizeof(int));
     test2[0] = 25;
 
     printf("\n");
-    printf("int* test = (int*) malloc(sizeof(int));\ntest[0] = 2;\nint* test2 = (int*) malloc(sizeof(int));\ntest2[0] = 25;\n");
+    printf("int* test = (int*) my_malloc(sizeof(int));\ntest[0] = 2;\nint* test2 = (int*) malloc(sizeof(int));\ntest2[0] = 25;\n");
     printf("value: %d | Adress: %p\n", test[0], (void*) test);    //avec %p printf veut un void*
     printf("value: %d | Adress: %p\n", test2[0], (void*) test2);
     printf("\n");
 
-    test = realloc(test, 3 * sizeof(int));
+    test = my_realloc(test, 3 * sizeof(int));
 
     printf("\n");
     printf("test = realloc(test, 3 * sizeof(int));\n");
@@ -148,7 +148,7 @@ int main () {
     printf("value: %d | Adress: %p\n", test2[0], (void*) test2);
     printf("\n");
 
-    test2 = realloc(test2, 2 * sizeof(int));
+    test2 = my_realloc(test2, 2 * sizeof(int));
     
     printf("\n");
     printf("realloc(test2, 2 * sizeof(int));\n");
